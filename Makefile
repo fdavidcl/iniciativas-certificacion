@@ -1,6 +1,12 @@
-PDF=$(addsuffix .pdf, $(basename $(wildcard *.md)))
+PDF=$(addsuffix .pdf, $(basename $(basename $(wildcard *.doc.md *.pres.md))))
 
 default: $(PDF)
 
-%.pdf: %.md
-	pandoc --to latex --latex-engine pdflatex -N -o $@ $< --template template.tex
+%.pdf: %.doc.md references.bib
+	pandoc --to latex --latex-engine xelatex -N -o $@ $< --filter pandoc-citeproc --template template.tex
+
+%.pdf: %.pres.md
+	pandoc --to beamer --latex-engine xelatex -N -o $@ $<
+
+clean:
+	rm -f $(PDF)

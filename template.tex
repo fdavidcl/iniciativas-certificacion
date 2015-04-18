@@ -39,6 +39,9 @@ $if(mathfont)$
     \setmathfont(Digits,Latin,Greek){$mathfont$}
 $endif$
 \fi
+
+
+
 % use upquote if available, for straight quotes in verbatim environments
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 % use microtype if available
@@ -49,14 +52,18 @@ $endif$
 $if(geometry)$
 \usepackage[$for(geometry)$$geometry$$sep$,$endfor$]{geometry}
 $endif$
+
+%\usepackage[a4paper, top=2.5cm, bottom=2.5cm, left=3cm, right=3cm]{geometry}
+
 $if(lang)$
 \ifxetex
   \usepackage{polyglossia}
-  \setmainlanguage{$mainlang$}
+  \setmainlanguage{$lang$}
 \else
   \usepackage[shorthands=off,$lang$]{babel}
 \fi
 $endif$
+
 $if(natbib)$
 \usepackage{natbib}
 \bibliographystyle{$if(biblio-style)$$biblio-style$$else$plainnat$endif$}
@@ -96,7 +103,13 @@ $if(graphics)$
 $endif$
 
 % Allow hyphens breaking URLs in footnotes
-\usepackage[hyphens]{url}
+%\usepackage[hyphens]{url}
+
+
+\usepackage{titlesec}
+\titlespacing\section{0pt}{2pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+\titlespacing\subsection{0pt}{2pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+\titlespacing\subsubsection{0pt}{2pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
 
 \ifxetex
   \usepackage[setpagesize=false, % page size defined by xetex
@@ -150,7 +163,7 @@ $endif$
 
 %%% Change title format to be more compact
 \usepackage{titling}
-\setlength{\droptitle}{2em}
+%\setlength{\droptitle}{2em}
 $if(title)$
   $if(subtitle)$
 	\title{\textbf{$title$}\\
@@ -158,7 +171,7 @@ $subtitle$}
   $else$
 	\title{$title$}
   $endif$
-  \pretitle{\vspace{\droptitle}\flushright\huge}
+  \pretitle{\vspace{\droptitle}\flushleft\huge}
   \posttitle{\par}
 $else$
   \title{}
@@ -167,15 +180,15 @@ $else$
 $endif$
 $if(author)$
   \author{$for(author)$$author$$sep$ \and $endfor$}
-  \preauthor{\flushright\large}
-  \postauthor{\par}
+  \preauthor{\flushleft\large}
+  \postauthor{}
 $else$
   \author{}
   \preauthor{}\postauthor{}
 $endif$
 $if(date)$
-  \predate{\flushright\large\emph}
-  \postdate{\par}
+  \predate{\flushleft\large\emph}
+  \postdate{}
   \date{$date$}
 $else$
   \date{}
@@ -199,7 +212,6 @@ $if(abstract)$
 $abstract$
 \end{abstract}
 $endif$
-\pagebreak
 
 $for(include-before)$
 $include-before$

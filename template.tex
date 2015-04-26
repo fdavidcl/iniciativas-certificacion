@@ -40,7 +40,10 @@ $if(mathfont)$
 $endif$
 \fi
 
-
+% Use smaller size for monospace font
+\usepackage{letltxmacro}
+\LetLtxMacro{\oldtt}{\texttt}
+\renewcommand{\texttt}[1]{\small\oldtt{#1}\normalsize}
 
 % use upquote if available, for straight quotes in verbatim environments
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}

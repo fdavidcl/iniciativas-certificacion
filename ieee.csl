@@ -160,7 +160,7 @@
 	  <if variable="URL">
 	    <group delimiter=". ">
 	      <text value="[Online]"/>
-	      <text variable="URL" prefix="Disponible: "/>
+	      <text variable="URL" prefix=""/>
 	      <group prefix="[" suffix="]">
 		<date variable="accessed" prefix="Accedido: ">
 		  <date-part name="day" form="numeric-leading-zeros" suffix="-"/>

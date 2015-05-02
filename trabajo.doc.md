@@ -363,23 +363,64 @@ Este programa se denomina Let's Encrypt Client y está disponible en versión pr
 su uso y colaborar en el desarrollo.
 
 Actualmente el cliente de Let's Encrypt es capaz de integrarse con el servidor Apache para instalar el certificado,
-activar HTTPS y alterar la configuración convenientemente. 
+activar HTTPS y alterar la configuración convenientemente. La instalación se puede realizar fácilmente en Ubuntu y 
+Debian, y de forma manual en otros sistemas GNU/Linux. Para ello, se ejecutan los siguientes comandos: 
 
 \small
 
 ```bash
-sudo apt-get python swig libaugeas0
 git clone https://github.com/letsencrypt/lets-encrypt-preview.git
 cd lets-encrypt-preview
+./bootstrap/ubuntu.sh
+virtualenv --no-site-packages -p python2 venv
+./venv/bin/python setup.py install
 ```
 
 \normalsize
 
-<!-- Parte de CA: Boulder -->
+Ahora, para poder utilizar este cliente ACME junto con un servidor, será necesario configurar Apache con al menos un
+sitio o un *virtual host* de manera que el programa lo identifique y sea capaz de completar el proceso automáticamente.
+Para configurar Apache de esta forma, se puede añadir un nuevo archivo `10-ejemplo.conf` bajo la ruta `/etc/apache2/sites-enabled`
+(o `/etc/httpd/sites-enabled` en otros sistemas), con el siguiente contenido [@apachevh]:
 
-<!-- Parte de cliente de CA: lets-encrypt-preview -->
+\small
 
+```conf
+<VirtualHost *:80>
+   ServerName www.acme.demo
+   ServerAlias acme.demo *.acme.demo
+   DocumentRoot /var/www/acme-site
+</VirtualHost>
+```
 
+\normalsize
+
+En este ejemplo se ha indicado la ruta `/var/www/acme-site` como raíz de los documentos a servir en el sitio web, por
+lo que será conveniente incluir en dicho directorio al menos un archivo `index.html` que Apache pueda servir por
+defecto al entrar en el sitio. El contenido de este archivo no es de relevancia para el ejemplo. Además, se deberá
+añadir una línea al archivo *hosts* ubicado en `/etc/hosts` dirigiendo el dominio `acme.demo` a la IP local, es decir,
+`127.0.0.1`:
+
+\small
+
+~~~bash
+sudo su -c 'echo "127.0.0.1  acme.demo" >> /etc/hosts'
+~~~
+
+\normalsize
+
+A continuación se recargará la configuración de Apache mediante el comando `sudo apache2ctl restart` o bien
+`sudo systemctl restart httpd` según el sistema Linux instalado. En este momento, la configuración realizada permitirá
+acceder a la ruta `http://acme.demo` desde un navegador, pero no a `https://acme.demo` (figura \ref{pre_letsencrypt}).
+
+![El estado del sitio web de ejemplo antes de configurar Let's Encrypt\label{pre_letsencrypt}](img/pre_letsencrypt.png)
+
+Para que el cliente Let's Encrypt encuentre el *virtual host* creado, será necesario copiar el archivo `10-ejemplo.conf`
+al directorio `sites-available/` de la ruta de configuración de Apache [@leconfig]. Por último, se procederá a ejecutar
+Let's Encrypt en modo interactivo: `sudo ./venv/bin/letsencrypt`, lo cual lanzará un asistente en la terminal como el
+que se muestra en la figura \ref{letsencrypt_wizard}.
+
+![Asistente de certificación de Let's Encrypt\label{letsencrypt_wizard}](img/letsencrypt_wizard.png)
 
 <!-- Convergence o DANE/DNS-SEC? -->
 <!-- Ver qué tiene que ver DANE con todo esto -->

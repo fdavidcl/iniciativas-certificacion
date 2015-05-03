@@ -10,7 +10,13 @@ linestretch: 1
 geometry: "a4paper, top=2.5cm, bottom=2.5cm, left=3cm, right=3cm"
 
 abstract:
-  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec a diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec consectetur ante hendrerit. Donec et mollis dolor. Praesent et diam eget libero egestas mattis sit amet vitae augue. Nam tincidunt congue enim, ut porta lorem lacinia consectetur. Donec ut libero sed arcu vehicula ultricies a non tortor. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ut gravida lorem. Ut turpis felis, pulvinar a semper sed, adipiscing id dolor. Pellentesque auctor nisi id magna consequat sagittis. Curabitur dapibus enim sit amet elit pharetra tincidunt feugiat nisl imperdiet.
+  La navegación segura en Internet se extiende lentamente debido a numerosas dificultades en los procesos necesarios para su
+  implementación. En este texto se explican y se analizan tres propuestas dirigidas a la difusión de las comunicaciones
+  seguras y a la mejora de la certificación y la autenticación. Se observan las nuevas funcionalidades que traerá el próximo
+  estándar HTTP/2 y se realiza un ejemplo de instalación en un servidor. De la misma forma, se presenta una autoridad de
+  certificación automatizada, Let's Encrypt, y se demuestra su funcionamiento mediante las implementaciones de cliente y 
+  servidor del protocolo asociado ACME. Por último, se explica el mecanismo de verificación de identidad mediante certificados
+  Convergence, frente a las autoridades de certificación, y se muestra un ejemplo de su uso.
 
 bibliography: references.bib
 csl: ieee.csl
@@ -68,8 +74,9 @@ ya que para contar con uno confiable hay que seguir la jerarquía establecida.
 A continuación se estudian varios nuevos desarrollos que pretenden resolver algunos de estos problemas y se describe
 su instalación y uso. El resto de este texto se organiza como sigue: en la sección \ref{http2} se introduce el protocolo
 HTTP/2 y se detallan las funcionalidades que afectan a las comunicaciones seguras; en la sección \ref{letsencrypt} se
-analiza la iniciativa Let's Encrypt y cómo puede colaborar a la difusión de la certificación web; finalmente en la sección
-\ref{convergence} se explica la propuesta denominada Convergence para sustituir a la certificación tradicional.
+analiza la iniciativa Let's Encrypt y cómo puede colaborar a la difusión de la certificación web; en la sección
+\ref{convergence} se explica la propuesta denominada Convergence para sustituir a la certificación tradicional. Finalmente
+la sección \ref{conclusion} expone unas conclusiones.
 
 # HTTP/2
 \label{http2}
@@ -403,33 +410,125 @@ añadir una línea al archivo *hosts* ubicado en `/etc/hosts` dirigiendo el domi
 
 \small
 
-~~~bash
+```bash
 sudo su -c 'echo "127.0.0.1  acme.demo" >> /etc/hosts'
-~~~
+```
 
 \normalsize
 
 A continuación se recargará la configuración de Apache mediante el comando `sudo apache2ctl restart` o bien
 `sudo systemctl restart httpd` según el sistema Linux instalado. En este momento, la configuración realizada permitirá
-acceder a la ruta `http://acme.demo` desde un navegador, pero no a `https://acme.demo` (figura \ref{pre_letsencrypt}).
+acceder a la ruta `http://acme.demo` desde un navegador, pero no a `https://acme.demo`.
 
-![El estado del sitio web de ejemplo antes de configurar Let's Encrypt\label{pre_letsencrypt}](img/pre_letsencrypt.png)
-
-Para que el cliente Let's Encrypt encuentre el *virtual host* creado, será necesario copiar el archivo `10-ejemplo.conf`
+Para que el cliente Let's Encrypt encuentre el host virtual creado, será necesario copiar el archivo `10-ejemplo.conf`
 al directorio `sites-available/` de la ruta de configuración de Apache [@leconfig]. Por último, se procederá a ejecutar
 Let's Encrypt en modo interactivo: `sudo ./venv/bin/letsencrypt`, lo cual lanzará un asistente en la terminal como el
 que se muestra en la figura \ref{letsencrypt_wizard}.
 
 ![Asistente de certificación de Let's Encrypt\label{letsencrypt_wizard}](img/letsencrypt_wizard.png)
 
-<!-- Convergence o DANE/DNS-SEC? -->
-<!-- Ver qué tiene que ver DANE con todo esto -->
-<!-- Comparar a ver cuál es más novedosa, o ganando tracción -->
+Tras aceptar el acuerdo y seleccionar *Apache Web Server* cuando se presente la elección, el cliente tratará de comunicarse
+con la CA de Let's Encrypt, alojada temporalmente en `letsencrypt-demo.org`, y usará el protocolo ACME para registrarse,
+recibir y completar el desafío y generar el certificado[^notale]: se observa este proceso en curso en la figura \ref{leclient2}. 
+Una vez que la gestión con la CA se haya completado, el programa
+modificará la configuración de Apache añadiendo un host virtual con HTTPS activado, y permitirá elegir si se desea que
+el servidor web siempre redirija a los usuarios a `https://` incluso si navegan desde `http://`.
+
+![El programa cliente registrado en la CA y preparado para recibir el desafío\label{leclient2}](img/leclient.png)
+
+[^notale]: Es importante notar que el programa cliente tiene un desarrollo activo actualmente y puede que en cualquier
+momento su comportamiento no se corresponda exactamente con el aquí descrito.
+
 # Convergence
 \label{convergence}
 
-<!-- Análisis de la estructura dinámica de notarios -->
+Convergence [@convergence] es un software junto con un protocolo, que trata de modificar la manera en que un cliente web deposita su
+confianza en servidores remotos para verificar la identidad de los sitios que visita. Está desarrollado por Moxie 
+Marlinspike (desarrollador de herramientas de comunicación segura como TextSecure y RedPhone) y basado en gran medida
+en una metodología anterior denominada Perspectives [@perspectives].
 
-<!-- Comentario sobre extensión de navegador -->
+## Notarios
 
-# Bibliografía
+Frente a las autoridades de certificación en las que actualmente se deposita toda la confianza, y se hace de forma 
+individual, es decir, para cada certificado únicamente se consulta a una CA, Convergence propone un sistema de "notarios",
+servidores que puedan ser consultados cuando se acceda a un sitio web y se reciba un certificado. En ese momento, el
+cliente envía el certificado que ha recibido al notario y este comprueba si al acceder al mismo sitio web se recibe el
+mismo certificado. De esta manera, se está comprobando que desde varios puntos remotos el certificado es el mismo, por
+lo que la posibilidad de que se esté produciendo un ataque *Man in the Middle* (MitM) es mínima, verificando por tanto que la
+identidad del sitio solicitado es correcta.
+
+Los notarios pueden utilizar distintos mecanismos para comprobar la identidad de un sitio, por ejemplo simplemente conectando
+como cualquier otro cliente, o utilizando el sistema de CAs para verificar el certificado. Dado que el cliente consultará
+generalmente a varios notarios, buscará el consenso entre todos o la aprobación de la mayoría para saber si es seguro
+el acceso al sitio.
+
+Una implementación en Python de un notario de Convergence está disponible en [@convnotary], y se puede instalar en cualquier
+servidor para proporcionar este servicio. Actualmente ya no quedan notarios públicos disponibles, por lo que una posibilidad
+es utilizar un servidor propio que haga el papel de notario. Para que la comprobación de certificados sea concluyente, es
+conveniente que este servidor esté ubicado en una red distinta a aquella en la que se vaya a navegar, de forma que un ataque MitM
+no pueda engañar a cliente y notario a la vez. La instalación del notario se realiza siguiendo unos pasos sencillos:
+
+\small
+
+```bash
+# Instalación
+sudo apt-get install python python-twisted-web python-twisted-names \
+   python-m2crypto python-openssl
+git clone https://github.com/mk-fg/convergence
+cd convergence/server
+sudo python setup.py install
+
+# Configuración
+convergence gencert
+sudo convergence createdb
+convergence bundle
+sudo convergence notary -c mynotary.pem -k mynotary.key
+```
+
+\normalsize
+
+La orden `bundle` pedirá introducir datos acerca del servidor donde se alojará el notario, tales como el nombre de host
+(por ejemplo, `example.org` o `localhost`) y su región, tras lo cual habrá creado un archivo con extensión `.notary` que
+se utilizará para que el cliente de Convergence pueda comunicarse con el notario.
+
+## Cliente
+
+Existe una implementación de cliente de Convergence en forma de extensión del navegador Mozilla Firefox, llamada
+Convergence Extra y disponible en el sitio de *Addons* de Mozilla [@convextra]. Al instalar la extensión y reiniciar el 
+navegador, se activará la navegación segura con Convergence en los sitios con HTTPS. Por defecto la extensión intentará
+usar notarios que ya no están activos, por lo que será necesario importar uno propio mediante el archivo de extensión
+`.notary` generado en la configuración del notario anterior. Esta funcionalidad está disponible en la pantalla de opciones
+de Convergence Extra. También se deberá desactivar la versión con privacidad del protocolo, puesto que se va a utilizar
+un único notario privado y para el protocolo privado son necesarios 2 o más notarios.
+
+Tras configurar la extensión, será posible ya reanudar la navegación segura por Internet, pudiendo comprobar que la
+verificación de certificados ya no pasa por el sistema de autoridades de certificación, sino por Convergence. Este 
+comportamiento se puede observar en la figura \ref{convaction}. 
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\maxwidth]{img/convergence.png}
+\caption{La identidad del sitio se verifica con Convergence\label{convaction}}
+\end{figure}
+
+
+# Conclusiones
+\label{conclusion}
+
+La autenticación en Internet está aún muy limitada, a causa de la baja difusión y la dificultad para implementar un
+servidor con certificado. Además, el tradicional mecanismo de autoridades de certificación obliga a los usuarios a
+depositar su confianza de forma individual a entidades que podrían sufrir vulnerabilidades de seguridad. 
+
+En este texto
+se han estudiado y revisado tres propuestas que aspiran a aumentar la seguridad de la navegación, mediante la difusión,
+la simplificación y la dinamización de las conexiones seguras y la certificación. HTTP/2 y Let's Encrypt están terminando
+su proceso de desarrollo y saldrán al público pronto, y cabe esperar que tengan un buen recibimiento dados los apoyos
+que tienen y las empresas y organizaciones que están detrás de ellos. Será conveniente entonces realizar una nueva revisión
+de sus funcionalidades y observar si mantienen sus ventajas y cómo se han resuelto algunos problemas. 
+
+Por otro lado, Convergence es una iniciativa algo
+más antigua y a la que le ha faltado impulso, pero de fácil implementación y que puede servir como base para futuros reajustes
+en los mecanismos de verificación de certificados. La creciente preocupación por la seguridad y la privacidad en
+Internet permite pensar que se seguirán desarrollando proyectos similares, en pos de una navegación menos vulnerable. 
+
+# Referencias

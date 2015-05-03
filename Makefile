@@ -9,7 +9,7 @@ default: $(PDF)
 	pandoc --to latex -N -o $@ $< --filter pandoc-citeproc --template template.tex
 
 %.pdf: %.pres.md
-	pandoc --to beamer --latex-engine xelatex -N -o $@ $<
+	pandoc --to beamer --latex-engine xelatex -N -o $@ $< --template beamer-template.tex
 
 clean:
 	rm -f $(PDF)

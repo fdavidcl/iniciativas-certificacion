@@ -17,6 +17,12 @@ certificación automatizada, Let's Encrypt, y se demuestra su funcionamiento med
 servidor del protocolo asociado ACME. Por último, se explica el mecanismo de verificación de identidad mediante certificados
 Convergence, frente a las autoridades de certificación, y se muestra un ejemplo de su uso.
 
+### Descargas
+
+En la sección de *releases* se pueden obtener los [PDFs 
+correspondientes](https://github.com/fdavidcl/iniciativas-certificacion/releases), o se puede 
+clonar el repositorio y generarlos con `make` (son necesarios Pandoc y XeLaTeX).
+
 ### Licencia
 
 El texto se comparte bajo una licencia [Creative Commons BY-NC-SA](https://creativecommons.org/licenses/by-nc-sa/4.0/).

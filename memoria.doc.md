@@ -9,12 +9,18 @@ fontsize: 10pt
 linestretch: 1
 geometry: "a4paper, top=2.5cm, bottom=2.5cm, left=3cm, right=3cm"
 
+include-after: "
+
+  * * *
+
+  Esta obra se distribuye bajo una [Licencia Creative Commons Atribución-NoComercial-CompartirIgual 4.0 Internacional](http://creativecommons.org/licenses/by-nc-sa/4.0/)."
+
 abstract:
   La navegación segura en Internet se extiende lentamente debido a numerosas dificultades en los procesos necesarios para su
   implementación. En este texto se explican y se analizan tres propuestas dirigidas a la difusión de las comunicaciones
   seguras y a la mejora de la certificación y la autenticación. Se observan las nuevas funcionalidades que traerá el próximo
   estándar HTTP/2 y se realiza un ejemplo de instalación en un servidor. De la misma forma, se presenta una autoridad de
-  certificación automatizada, Let's Encrypt, y se demuestra su funcionamiento mediante las implementaciones de cliente y 
+  certificación automatizada, Let's Encrypt, y se demuestra su funcionamiento mediante las implementaciones de cliente y
   servidor del protocolo asociado ACME. Por último, se explica el mecanismo de verificación de identidad mediante certificados
   Convergence, frente a las autoridades de certificación, y se muestra un ejemplo de su uso.
 
@@ -25,10 +31,10 @@ csl: ieee.csl
 # Introducción
 
 Desde hace unos años, Internet se ha convertido en el instrumento de comunicación más grande y que más rápida
-difusión permite del mundo. El comportamiento de los usuarios en la web de la actualidad difiere enormemente de 
-aquel de los inicios de la web. Hoy se pasa gran parte del tiempo de navegación en aplicaciones web, en lugar de 
+difusión permite del mundo. El comportamiento de los usuarios en la web de la actualidad difiere enormemente de
+aquel de los inicios de la web. Hoy se pasa gran parte del tiempo de navegación en aplicaciones web, en lugar de
 simples sitios web estáticos, basta observar un ranking de sitios web reputado como el de Alexa [@alexa500] para
-comprobarlo. Estas aplicaciones interactúan con el usuario, en el sentido de que intercambian datos 
+comprobarlo. Estas aplicaciones interactúan con el usuario, en el sentido de que intercambian datos
 con él más allá de la simple carga de una página web: el usuario puede enviar mensajes, subir archivos, jugar, y
 realizar cualquier otro tipo de intercambio de información. Esto implica mayor flujo de datos durante la comunicación y mayor
 necesidad de procesamiento en el servidor.
@@ -36,7 +42,7 @@ necesidad de procesamiento en el servidor.
 Además, la comunicación en Internet no supone únicamente navegación web, sino también prácticamente cualquier
 servicio remoto que utilice una arquitectura cliente-servidor. Esto es, las aplicaciones móviles que permiten
 el acceso a servicios sociales, de búsqueda, de mensajería, de mapas, etc. utilizan los mismos protocolos básicos
-que un navegador web para transmitir y recibir los datos necesarios. 
+que un navegador web para transmitir y recibir los datos necesarios.
 
 ## Seguridad en la red
 
@@ -47,7 +53,7 @@ no incluye por defecto ninguna medida de seguridad en cuanto a confidencialidad 
 utilizar un protocolo de cifrado, TLS (*Transport Layer Security*), en la capa de aplicación, por debajo de HTTP.
 
 TLS está definido en [@tlsrfc], y proporciona la posibilidad de autenticar la comunicación: por ejemplo, al acceder
-a `https://github.com` se verifica que quien está respondiendo es efectivamente GitHub, como se muestra en la Figura 
+a `https://github.com` se verifica que quien está respondiendo es efectivamente GitHub, como se muestra en la Figura
 \ref{httpsgithub}. TLS también ofrece la capacidad de cifrar la transmisión,
 de forma que ningún posible atacante pueda visualizar la información que se está enviando y recibiendo.
 
@@ -64,10 +70,10 @@ email y contraseñas). Este hecho implica que los usuarios mantienen conexiones 
 de sitios, y que en general podrán transmitir datos de cualquier tipo sin tener noción del nivel de seguridad que
 están utilizando en cada momento.
 
-Además, los certificados necesarios para realizar una conexión válida, que el navegador del usuario no detecte como 
+Además, los certificados necesarios para realizar una conexión válida, que el navegador del usuario no detecte como
 fraudulenta, han de ser expedidos por Autoridades de Certificación (*Certificate Authorities*, CA). La propia especificación
 de X.509 [@x509rfc] describe el algoritmo de verificación del camino de certificación: cuando un cliente encuentra
-un certificado para el que no sabe si confiar, debe seguir el "camino" de certificados hasta uno que pertenezca a 
+un certificado para el que no sabe si confiar, debe seguir el "camino" de certificados hasta uno que pertenezca a
 una CA que sí esté registrada como confiable. Este mecanismo puede restar dinamismo a la utilización de certificados,
 ya que para contar con uno confiable hay que seguir la jerarquía establecida.
 
@@ -94,9 +100,9 @@ la latencia provocada por el cifrado y el *handshake* mediante técnicas como la
 
 Para mantener compatibilidad con los clientes que aún no implementen HTTP/2, se incluye una negociación del protocolo
 a utilizar previa a cualquier solicitud HTTP, es decir, esto se realiza durante el *handshake* TLS (el intercambio de mensajes para
-establecer la conexión cifrada), mediante una 
-extensión de dicho protocolo denominada ALPN [@alpnrfc] (*Application Layer Protocol Negotiation*), que permite que el 
-cliente ofrezca una lista de protocolos soportados, codificados como `http/1.1`, `spdy/3.1`, `h2`, etc. y el 
+establecer la conexión cifrada), mediante una
+extensión de dicho protocolo denominada ALPN [@alpnrfc] (*Application Layer Protocol Negotiation*), que permite que el
+cliente ofrezca una lista de protocolos soportados, codificados como `http/1.1`, `spdy/3.1`, `h2`, etc. y el
 servidor responda con su elección de protocolo.
 
 Puesto que esta negociación se realiza como parte del *handshake* TLS, es razonable pensar que el uso principal de HTTP/2
@@ -109,7 +115,7 @@ web no implementarán esta variante de HTTP/2 [@mozillah2] [@chromiumh2], forzan
 
 HTTP/2 incorpora varias estrategias para reducir la cantidad de datos enviados en cada transmisión, de forma que aunque
 se utilice el cifrado, la comunicación sea más rápida que en HTTP/1.1. Uno de los puntos principales que se ha trabajado
-en SPDY y HTTP/2 es el de los *streams* o flujos, que permiten varias comunicaciones concurrentes entre un cliente y un 
+en SPDY y HTTP/2 es el de los *streams* o flujos, que permiten varias comunicaciones concurrentes entre un cliente y un
 servidor. Estos flujos pueden ser abiertos y cerrados por cualquiera de los dos extremos de la comunicación.
 
 Una funcionalidad novedosa dentro de HTTP/2 es la capacidad de que el servidor se "adelante" a las peticiones del cliente
@@ -117,15 +123,15 @@ y envíe, junto con una respuesta a una solicitud, más respuestas que conoce qu
 continuación. Esto se denomina *Server Push*, y permite que el cliente introduzca en caché dichas respuestas y las
 recupere cuando las necesite, en lugar de tener que realizar una nueva petición al servidor.
 
-Otra de estas técnicas es la compresión HPACK para las cabeceras de HTTP, definida de forma separada en [@hpackrfc]. 
-Este tipo de compresión corrige además una vulnerabilidad provocada por el uso de TLS y la compresión DEFLATE, que 
+Otra de estas técnicas es la compresión HPACK para las cabeceras de HTTP, definida de forma separada en [@hpackrfc].
+Este tipo de compresión corrige además una vulnerabilidad provocada por el uso de TLS y la compresión DEFLATE, que
 permitía que un atacante robase información cifrada, por ejemplo *cookies* de sesión [@crime].
 
 ## Cifrado oportunista
 
 El cifrado oportunista o seguridad oportunista es un mecanismo que permite aprovechar el soporte para cifrado mediante
 TLS de ambos extremos de la comunicación, aún cuando el protocolo en el que resida esta no obligue a usar cifrado. Es
-decir, al entrar en un sitio web mediante `http://`, no se requerirá de cifrado ni autenticación por ninguna de las 
+decir, al entrar en un sitio web mediante `http://`, no se requerirá de cifrado ni autenticación por ninguna de las
 dos partes, pero el cifrado oportunista podrá actuar para que la transmisión de datos se realice de forma cifrada, sin
 necesidad de intercambiar previamente un certificado.
 
@@ -184,7 +190,7 @@ make test
 
 \normalsize
 
-Tras la instalación en modo *sandbox* de *mod_h2*, se dispondrá de un servidor Apache preconfigurado, bajo la ruta 
+Tras la instalación en modo *sandbox* de *mod_h2*, se dispondrá de un servidor Apache preconfigurado, bajo la ruta
 `sandbox/install/`. Por tanto, es posible acceder a la dirección `http://test.example.org:12345`,
 donde dicho servidor estará escuchando y responderá a la petición indicando que
 soporta HTTP/2 en el campo *Alt-Svc* de las cabeceras, como se observa en la figura \ref{mod_h2_chromium}.
@@ -200,7 +206,7 @@ Al intentar acceder tanto desde Chrome como Firefox, se pone de manifiesto que e
 auto-firmado (es decir, no verificado por una CA), y los navegadores aún no soportan el uso de HTTP/2 con este tipo de
 certificados. Sin embargo, sí que es posible realizar una petición desde la terminal, mediante la utilidad *nghttp2*
 [@nghttp2] que viene incluída en la *sandbox* recién creada. Esta herramienta posee funcionalidades similares a las del
-conocido programa *curl* [@curl], pero con soporte para HTTP/2. La invocación se realiza con `nghttp`, añadiendo la dirección del 
+conocido programa *curl* [@curl], pero con soporte para HTTP/2. La invocación se realiza con `nghttp`, añadiendo la dirección del
 recurso a solicitar, y el parámetro `-v` permite mostrar más información acerca del intercambio de marcos HTTP/2. En
 la figura \ref{nghttp} se observa el comportamiento de este programa al solicitar `https://test.example.org:12346`,
 incluyendo la negociación de protocolo y el envío de la solicitud HTTP correspondiente, detallando sus cabeceras.
@@ -234,12 +240,12 @@ a la vez que comprometa menos su privacidad.
 \label{letsencrypt}
 
 Con el objetivo de mejorar y difundir la seguridad en Internet nace el Internet Security Research Group (ISRG), cuyo consejo
-de administración y consejo técnico están formados por miembros de Mozilla, Akamai, Cisco, CoreOS y la Electronic Frontier 
+de administración y consejo técnico están formados por miembros de Mozilla, Akamai, Cisco, CoreOS y la Electronic Frontier
 Foundation, entre otras empresas [@leisrg].
 
-Como respuesta a la rigidez del sistema tradicional de CAs, el ISRG presentó en 2014 el proyecto denominado *Let's 
-Encrypt*, una CA abierta al público, automatizada y gratuita. La motivación para crear una CA de este tipo reside en 
-que, en general, el proceso de obtención e instalación de un certificado X.509 verificado por una CA clásica (DigiCert, 
+Como respuesta a la rigidez del sistema tradicional de CAs, el ISRG presentó en 2014 el proyecto denominado *Let's
+Encrypt*, una CA abierta al público, automatizada y gratuita. La motivación para crear una CA de este tipo reside en
+que, en general, el proceso de obtención e instalación de un certificado X.509 verificado por una CA clásica (DigiCert,
 Verisign, IdenTrust, etc.) suele ser muy tedioso, y puede implicar que el dueño del sitio web tenga que revelar datos
 personales, como teléfonos o dirección física. Mediante la automatización de todo el proceso se pretende que cualquier
 administrador de un servidor web pueda fácilmente tener configurado el sitio con TLS y el certificado válido asociado.
@@ -250,9 +256,9 @@ Este proceso de gestión de la certificación se realiza siguiendo una especific
 Management Environment (ACME) [@acmespec]. Este protocolo diferencia entre un cliente ACME (un servidor web, un servidor
 de correo, etc.) y un servidor ACME (un servidor gestionado por una CA).
 
-De la misma manera en que un usuario podría registrar una cuenta y solicitar un certificado a una CA tradicional, 
+De la misma manera en que un usuario podría registrar una cuenta y solicitar un certificado a una CA tradicional,
 demostrando la propiedad del dominio para el que lo solicita; un cliente de ACME creará una pareja de claves pública
-y privada como cuenta, que registrará en el servidor ACME y después utilizará para autorizar la expedición y/o la 
+y privada como cuenta, que registrará en el servidor ACME y después utilizará para autorizar la expedición y/o la
 revocación de un certificado para el dominio solicitado.
 
 La primera fase para el uso de ACME, por tanto, es el registro del cliente en el servidor. Para esto, el cliente
@@ -269,13 +275,13 @@ enviado el servidor al cliente.
 Una vez completado este paso, el cliente puede pasar a autorizar mediante su clave privada la expedición de un nuevo
 certificado, para lo que enviará una solicitud especial al servidor ACME indicando el dominio a certificar, y el servidor
 deberá responder con el certificado creado, asociándole un URI (identificador de recurso uniforme) para poder obtener versiones
-nuevas cuando sea necesario. El cliente puede revocar el certificado en cualquier momento mediante la solicitud 
+nuevas cuando sea necesario. El cliente puede revocar el certificado en cualquier momento mediante la solicitud
 correspondiente.
 
 ## Servidor ACME: Boulder
 
 Boulder [@boulder] es una implementación de servidor ACME de código libre. Está escrita en el lenguaje Go, por lo que
-para usarla es necesario el intérprete de este lenguaje. Los pasos que se han de seguir para instalar Boulder son los 
+para usarla es necesario el intérprete de este lenguaje. Los pasos que se han de seguir para instalar Boulder son los
 siguientes:
 
 \small
@@ -351,27 +357,27 @@ Got token=[9pkXA-hbaS8L-NNHBxR5DQ], expecting=[9pkXA-hbaS8L-NNHBxR5DQ]
    Code: 201
    [contenido del certificado]
 ```
-   
+
 \normalsize
 
-Se puede observar cómo en la primera pareja de solicitud-respuesta se crea un registro para el cliente y se le 
+Se puede observar cómo en la primera pareja de solicitud-respuesta se crea un registro para el cliente y se le
 proporciona la clave de autorización para realizar acciones sobre sus dominios. El servidor devuelve en ese momento
 además el desafío que el cliente ha de completar para verificar su propiedad sobre el dominio (en este caso, `localhost`).
 A continuación, el cliente envía la información necesaria para completar el desafío de tipo *SimpleHttps*, y el
-servidor comprueba que el código recibido es el esperado. Por último, el cliente utiliza su autorización para pedir la 
+servidor comprueba que el código recibido es el esperado. Por último, el cliente utiliza su autorización para pedir la
 generación de un certificado adecuado para el dominio.
 
 ## Cliente ACME: Let's Encrypt Preview
 
-Además de la implementación de la parte de servidor, los desarrolladores de Let's Encrypt también han preparado un 
+Además de la implementación de la parte de servidor, los desarrolladores de Let's Encrypt también han preparado un
 programa cliente que se convertirá en la herramienta que permitirá a cualquier administrador de sistemas gestionar de
 forma automática la generación y la instalación de un certificado para su sitio web en el servidor correspondiente.
 Este programa se denomina Let's Encrypt Client y está disponible en versión preliminar en [@letsenclient] para probar
 su uso y colaborar en el desarrollo.
 
 Actualmente el cliente de Let's Encrypt es capaz de integrarse con el servidor Apache para instalar el certificado,
-activar HTTPS y alterar la configuración convenientemente. La instalación se puede realizar fácilmente en Ubuntu y 
-Debian, y de forma manual en otros sistemas GNU/Linux. Para ello, se ejecutan los siguientes comandos: 
+activar HTTPS y alterar la configuración convenientemente. La instalación se puede realizar fácilmente en Ubuntu y
+Debian, y de forma manual en otros sistemas GNU/Linux. Para ello, se ejecutan los siguientes comandos:
 
 \small
 
@@ -429,7 +435,7 @@ que se muestra en la figura \ref{letsencrypt_wizard}.
 
 Tras aceptar el acuerdo y seleccionar *Apache Web Server* cuando se presente la elección, el cliente tratará de comunicarse
 con la CA de Let's Encrypt, alojada temporalmente en `letsencrypt-demo.org`, y usará el protocolo ACME para registrarse,
-recibir y completar el desafío y generar el certificado[^notale]: se observa este proceso en curso en la figura \ref{leclient2}. 
+recibir y completar el desafío y generar el certificado[^notale]: se observa este proceso en curso en la figura \ref{leclient2}.
 Una vez que la gestión con la CA se haya completado, el programa
 modificará la configuración de Apache añadiendo un host virtual con HTTPS activado, y permitirá elegir si se desea que
 el servidor web siempre redirija a los usuarios a `https://` incluso si navegan desde `http://`.
@@ -443,13 +449,13 @@ momento su comportamiento no se corresponda exactamente con el aquí descrito.
 \label{convergence}
 
 Convergence [@convergence] es un software junto con un protocolo, que trata de modificar la manera en que un cliente web deposita su
-confianza en servidores remotos para verificar la identidad de los sitios que visita. Está desarrollado por Moxie 
+confianza en servidores remotos para verificar la identidad de los sitios que visita. Está desarrollado por Moxie
 Marlinspike (desarrollador de herramientas de comunicación segura como TextSecure y RedPhone) y basado en gran medida
 en una metodología anterior denominada Perspectives [@perspectives].
 
 ## Notarios
 
-Frente a las autoridades de certificación en las que actualmente se deposita toda la confianza, y se hace de forma 
+Frente a las autoridades de certificación en las que actualmente se deposita toda la confianza, y se hace de forma
 individual, es decir, para cada certificado únicamente se consulta a una CA, Convergence propone un sistema de "notarios",
 servidores que puedan ser consultados cuando se acceda a un sitio web y se reciba un certificado. En ese momento, el
 cliente envía el certificado que ha recibido al notario y este comprueba si al acceder al mismo sitio web se recibe el
@@ -494,7 +500,7 @@ se utilizará para que el cliente de Convergence pueda comunicarse con el notari
 ## Cliente
 
 Existe una implementación de cliente de Convergence en forma de extensión del navegador Mozilla Firefox, llamada
-Convergence Extra y disponible en el sitio de *Addons* de Mozilla [@convextra]. Al instalar la extensión y reiniciar el 
+Convergence Extra y disponible en el sitio de *Addons* de Mozilla [@convextra]. Al instalar la extensión y reiniciar el
 navegador, se activará la navegación segura con Convergence en los sitios con HTTPS. Por defecto la extensión intentará
 usar notarios que ya no están activos, por lo que será necesario importar uno propio mediante el archivo de extensión
 `.notary` generado en la configuración del notario anterior. Esta funcionalidad está disponible en la pantalla de opciones
@@ -502,8 +508,8 @@ de Convergence Extra. También se deberá desactivar la versión con privacidad 
 un único notario privado y para el protocolo privado son necesarios 2 o más notarios.
 
 Tras configurar la extensión, será posible ya reanudar la navegación segura por Internet, pudiendo comprobar que la
-verificación de certificados ya no pasa por el sistema de autoridades de certificación, sino por Convergence. Este 
-comportamiento se puede observar en la figura \ref{convaction}. 
+verificación de certificados ya no pasa por el sistema de autoridades de certificación, sino por Convergence. Este
+comportamiento se puede observar en la figura \ref{convaction}.
 
 \begin{figure}[h]
 \centering
@@ -517,18 +523,18 @@ comportamiento se puede observar en la figura \ref{convaction}.
 
 La autenticación en Internet está aún muy limitada, a causa de la baja difusión y la dificultad para implementar un
 servidor con certificado. Además, el tradicional mecanismo de autoridades de certificación obliga a los usuarios a
-depositar su confianza de forma individual a entidades que podrían sufrir vulnerabilidades de seguridad. 
+depositar su confianza de forma individual a entidades que podrían sufrir vulnerabilidades de seguridad.
 
 En este texto
 se han estudiado y revisado tres propuestas que aspiran a aumentar la seguridad de la navegación, mediante la difusión,
 la simplificación y la dinamización de las conexiones seguras y la certificación. HTTP/2 y Let's Encrypt están terminando
 su proceso de desarrollo y saldrán al público pronto, y cabe esperar que tengan un buen recibimiento dados los apoyos
 que tienen y las empresas y organizaciones que están detrás de ellos. Será conveniente entonces realizar una nueva revisión
-de sus funcionalidades y observar si mantienen sus ventajas y cómo se han resuelto algunos problemas. 
+de sus funcionalidades y observar si mantienen sus ventajas y cómo se han resuelto algunos problemas.
 
 Por otro lado, Convergence es una iniciativa algo
 más antigua y a la que le ha faltado impulso, pero de fácil implementación y que puede servir como base para futuros reajustes
 en los mecanismos de verificación de certificados. La creciente preocupación por la seguridad y la privacidad en
-Internet permite pensar que se seguirán desarrollando proyectos similares, en pos de una navegación menos vulnerable. 
+Internet permite pensar que se seguirán desarrollando proyectos similares, en pos de una navegación menos vulnerable.
 
 # Referencias
